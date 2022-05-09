@@ -1,0 +1,67 @@
+cqlsh> create KEYSPACE Employee with REPLICATION={'class':'SimpleStrategy','replication_factor':'1'} ;
+cqlsh> create table Employee_info(emp_id int, emp_name String, designation String, date_of_joining date, salary int, dept_name String, primary key((emp_id),salary));
+
+cqlsh:employee> insert into Employee_info(emp_id,emp_name,designation,date_of_joining,salary,dept_name) values(111,'Aishu V','CTO','1993-10-03',500000,'IT');
+cqlsh:employee> insert into Employee_info(emp_id,emp_name,designation,date_of_joining,salary,dept_name) values(121,'Anisha Nair','Manager','1999-01-04',900000,'HR');
+
+update Employee_info set emp_name='Anisha G Nair',dept_name='sales' where emp_id=121;
+InvalidRequest: Error from server: code=2200 [Invalid query] message="Some clustering keys are missing: salary"
+cqlsh:employee> select * from Employee_info
+            ... ;
+
+ emp_id | salary | date_of_joining | dept_name | designation | emp_name
+--------+--------+-----------------+-----------+-------------+-------------
+    111 | 500000 |      1993-10-03 |        IT |         CTO |     Aishu V
+    121 | 900000 |      1999-01-04 |        HR |     Manager | Anisha Nair
+
+(2 rows)
+cqlsh:employee> update Employee_info set emp_name='Anisha G Nair' where emp_id=121;
+InvalidRequest: Error from server: code=2200 [Invalid query] message="Some clustering keys are missing: salary"
+cqlsh:employee> update Employee_info set emp_name='Anisha G Nair' where emp_id=121 and salary=900000;
+cqlsh:employee> update Employee_info set dept_name='sales' where emp_id=121 and salary=900000;
+cqlsh:employee> select * from Employee_info
+            ... ;
+
+ emp_id | salary | date_of_joining | dept_name | designation | emp_name
+--------+--------+-----------------+-----------+-------------+---------------
+    111 | 500000 |      1993-10-03 |        IT |         CTO |       Aishu V
+    121 | 900000 |      1999-01-04 |     sales |     Manager | Anisha G Nair
+
+(2 rows)
+cqlsh:employee> alter table Employee_info add Projects set<text>;
+cqlsh:employee> update Employee_info set Projects= Projects+{'ABC','XYZ'} where emp_id=111 and salary=900000;
+cqlsh:employee> update Employee_info set Projects= Projects+{'ABC','XYZ'} where emp_id=111 and salary=500000;
+cqlsh:employee> update Employee_info set Projects= Projects+{'PQR','LMN'} where emp_id=121 and salary=900000;
+cqlsh:employee> select * from Employee_info
+            ... ;
+
+ emp_id | salary | date_of_joining | dept_name | designation | emp_name      | projects
+--------+--------+-----------------+-----------+-------------+---------------+----------------
+    111 | 500000 |      1993-10-03 |        IT |         CTO |       Aishu V | {'ABC', 'XYZ'}
+    111 | 900000 |            null |      null |        null |          null | {'ABC', 'XYZ'}
+    121 | 900000 |      1999-01-04 |     sales |     Manager | Anisha G Nair | {'LMN', 'PQR'}
+
+(3 rows)
+cqlsh:employee> delete from Employee_info where emp_id=111 and salary=900000;
+cqlsh:employee> insert into Employee_info(emp_id,emp_name,designation,date_of_joining,salary,dept_name) values(131,'Anju Gopi','CFO','1989-09-12',1200000,'Finances') using TTL 15;
+cqlsh:employee> select * from Employee_info
+            ... ;
+
+ emp_id | salary  | date_of_joining | dept_name | designation | emp_name      | projects
+--------+---------+-----------------+-----------+-------------+---------------+----------------
+    111 |  500000 |      1993-10-03 |        IT |         CTO |       Aishu V | {'ABC', 'XYZ'}
+    121 |  900000 |      1999-01-04 |     sales |     Manager | Anisha G Nair | {'LMN', 'PQR'}
+    131 | 1200000 |      1989-09-12 |  Finances |         CFO |     Anju Gopi |           null
+
+(3 rows)
+cqlsh:employee> select * from Employee_info
+            ... ;
+
+ emp_id | salary | date_of_joining | dept_name | designation | emp_name      | projects
+--------+--------+-----------------+-----------+-------------+---------------+----------------
+    111 | 500000 |      1993-10-03 |        IT |         CTO |       Aishu V | {'ABC', 'XYZ'}
+    121 | 900000 |      1999-01-04 |     sales |     Manager | Anisha G Nair | {'LMN', 'PQR'}
+
+
+
+
