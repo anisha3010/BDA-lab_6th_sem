@@ -1,0 +1,10 @@
+$ hdfs dfs -mkdir /spark
+$ hdfs dfs -put /home/amit/sparkdata.txt /spark
+
+scala&gt; val data=sc.textFile(&quot;sparkdata.txt&quot;) .
+
+scala&gt; val splitdata = data.flatMap(line =&gt; line.split(&quot; &quot;));
+scala&gt; splitdata.collect;
+
+scala&gt; val mapdata = splitdata.map(word =&gt; (word,1));
+scala&gt; val reducedata = mapdata.reduceByKey(+);
